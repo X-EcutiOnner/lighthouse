@@ -1,41 +1,75 @@
-# Lighthouse - Code Coverage Explorer for IDA Pro
+# Lighthouse - A Code Coverage Explorer for Reverse Engineers
 <p align="center">
-<img alt="Lighthouse Plugin" src="screenshots/overview.png"/>
+<img alt="Lighthouse Plugin" src="screenshots/overview.gif"/>
 </p>
 
 ## Overview
 
-Lighthouse is a Code Coverage Plugin for [IDA Pro](https://www.hex-rays.com/products/ida/). The plugin leverages IDA as a platform to map, explore, and visualize externally collected code coverage data when symbols or source may not be available for a given binary.
+Lighthouse is a code coverage plugin for [IDA Pro](https://www.hex-rays.com/products/ida/), and [Binary Ninja](https://binary.ninja/). The plugin makes use of interactive disassemblers to map, explore, and visualize externally collected code coverage data when symbols or source may not be available for a given binary.
 
-This plugin is labeled only as a prototype and IDA / Qt code example for the community. 
+This plugin is labeled only as a prototype & code resource for the community. 
 
 Special thanks to [@0vercl0k](https://twitter.com/0vercl0k) for the inspiration.
 
 ## Releases
 
+* v0.8 -- Binary Ninja support, HTML coverage reports, consistent styling, many tweaks, bugfixes.
+* v0.7 -- Frida, C++ demangling, context menu, function prefixing, tweaks, bugfixes.
+* v0.6 -- Intel pintool, cyclomatic complexity, batch load, bugfixes.
+* v0.5 -- Search, IDA 7 support, many improvements, stability.
+* v0.4 -- Most compute is now asynchronous, bugfixes.
 * v0.3 -- Coverage composition, interactive composing shell.
-* v0.2 -- Multifile support, perfomance improvements, bugfixes.
+* v0.2 -- Multifile support, performance improvements, bugfixes.
 * v0.1 -- Initial release
 
-## Installation
+# IDA Pro Installation
 
-Install Lighthouse into the IDA plugins folder.
+Lighthouse is a cross-platform (Windows, macOS, Linux) python plugin, supporting IDA Pro 6.8 and newer.
 
 - Copy the contents of the `plugin` folder to the IDA plugins folder
     - On Windows, the folder is at `C:\Program Files (x86)\IDA 6.8\plugins`
-    - On MacOS, the folder is at `/Applications/IDA\ Pro\ 6.8/idaq.app/Contents/MacOS/plugins`
+    - On macOS, the folder is at `/Applications/IDA\ Pro\ 6.8/idaq.app/Contents/MacOS/plugins`
     - On Linux, the folder may be at `/opt/IDA/plugins/`
 
-The plugin has only been tested on IDA Pro 6.8, 6.95 for Windows.
+It has been primarily developed and tested on Windows, so that is where we expect the best experience.
 
-## Usage
+# Binary Ninja Installation (Experimental)
 
-Lighthouse loads automatically when an IDB is opened, installing the following menu entries into the IDA interface:
+At this time, support for Binary Ninja is considered experimental. Please feel free to report any bugs that you encounter.
+
+You can install Lighthouse & PyQt5 for Binary Ninja by following the instructions below.
+
+## Windows Installation
+
+1. Install PyQt5 from a Windows command prompt with the following command:
 
 ```
-- File --> Load file --> Code Coverage File(s)...
-- View --> Open subviews --> Coverage Overview
+pip install --target="%appdata%\Binary Ninja\plugins\Lib\site-packages" python-qt5
 ```
+
+2. Copy the contents of the `/plugin/` folder in this repo to your Binary Ninja [plugins folder](https://docs.binary.ninja/guide/plugins/index.html#using-plugins).
+
+## Linux Installation
+
+1. Install PyQt5 from a Linux shell with the following command:
+
+```
+sudo apt install python-pyqt5
+```
+
+2. Copy the contents of the `/plugin/` folder in this repo to your Binary Ninja [plugins folder](https://docs.binary.ninja/guide/plugins/index.html#using-plugins).
+
+## macOS Installation
+
+¯\\\_(ツ)\_/¯
+
+# Usage
+
+Lighthouse loads automatically when a database is opened, installing a handful of menu entries into the disassembler.
+
+<p align="center">
+<img alt="Lighthouse Menu Entries" src="screenshots/open.gif"/>
+</p>
 
 These are the entry points for a user to load and view coverage data.
 
@@ -47,6 +81,8 @@ Lighthouse 'paints' the active coverage data across the three major IDA views as
 <img alt="Lighthouse Coverage Painting" src="screenshots/painting.png"/>
 </p>
 
+In Binary Ninja, only the Disassembly and Graph views are supported.
+
 ## Coverage Overview
 
 The Coverage Overview is a dockable widget that provides a function level view of the active coverage data for the database.
@@ -57,9 +93,19 @@ The Coverage Overview is a dockable widget that provides a function level view o
 
 This table can be sorted by column, and entries can be double clicked to jump to their corresponding disassembly.
 
-## Composing Shell
+## Context Menu
 
-Building relationships between multiple sets of coverage data often distills deeper meaning than their individual parts. The composing shell is an interactive means of constructing these relationships.
+Right clicking the table in the Coverage Overview will produce a context menu with a few basic amenities.
+
+<p align="center">
+<img alt="Lighthouse Context Menu" src="screenshots/context_menu.gif"/>
+</p>
+
+These actions can be used to quickly manipulate or interact with entries in the table.
+
+## Coverage Composition
+
+Building relationships between multiple sets of coverage data often distills deeper meaning than their individual parts. The shell at the bottom of the [Coverage Overview](#coverage-overview) provides an interactive means of constructing these relationships.
 
 <p align="center">
 <img alt="Lighthouse Coverage Composition" src="screenshots/shell.gif"/>
@@ -84,6 +130,34 @@ Coverage composition, or _Composing_ as demonstrated above is achieved through a
 
 The evaluation of the composition may occur right to left, parenthesis are suggested for potentially ambiguous expressions.
 
+## Hot Shell
+
+Additionally, there is a 'Hot Shell' mode that asynchronously evaluates and caches user compositions in real-time.
+
+<p align="center">
+<img alt="Lighthouse Hot Shell" src="screenshots/hot_shell.gif"/>
+</p>
+
+The hot shell serves as a natural gateway into the unguided exploration of composed relationships.
+
+## Search
+
+Using the shell, one can search and filter the functions listed in the coverage table by prefixing their query with `/`.
+
+<p align="center">
+<img alt="Lighthouse Search" src="screenshots/search.gif"/>
+</p>
+
+The head of the shell will show an updated coverage % computed only from the remaining functions. This is useful when analyzing  coverage for specific function families.
+
+## Jump
+
+Entering an address or function name into the shell can be used to jump to corresponding function entries in the table.
+
+<p align="center">
+<img alt="Lighthouse Jump" src="screenshots/jump.gif"/>
+</p>
+
 ## Coverage ComboBox
 
 Loaded coverage data and user constructed compositions can be selected or deleted through the coverage combobox.
@@ -92,48 +166,69 @@ Loaded coverage data and user constructed compositions can be selected or delete
 <img alt="Lighthouse Coverage ComboBox" src="screenshots/combobox.gif"/>
 </p>
 
-## Hot Shell (experimental)
+## HTML Coverage Report
 
-Additionally, there is a prototype 'Hot Shell' mode that evaluates user compositions in real-time. This promotes a more natural experience in the unguided exploration of composed relationships.
+Lighthouse can generate a rudimentary HTML coverage report of the active coverage. 
+A sample report can be seen [here](https://rawgit.com/gaasedelen/lighthouse/master/testcase/report.html).
 
 <p align="center">
-<img alt="Lighthouse Hot Shell" src="screenshots/hot_shell.gif"/>
+<img alt="Lighthouse HTML Report" src="screenshots/html_report.gif"/>
 </p>
 
-The performance of this feature will be vastly improved in the next release, v0.4.0.
+# Collecting Coverage
 
-## Collecting Coverage
+Before using Lighthouse, one will need to collect code coverage data for their target binary / application.
 
-At this time, Lighthouse only consumes binary coverage data as produced by DynamoRIO's [drcov](http://dynamorio.org/docs/page_drcov.html) code coverage module. 
+The examples below demonstrate how one can use [DynamoRIO](http://www.dynamorio.org), [Intel Pin](https://software.intel.com/en-us/articles/pin-a-dynamic-binary-instrumentation-tool) or [Frida](https://www.frida.re) to collect Lighthouse compatible coverage against a target. The `.log` files produced by these instrumentation tools can be loaded directly into Lighthouse.
 
-Collecting blackbox coverage data with `drcov` is relatively straightforward. The following example demonstrates how coverage was produced for the `boombox.exe` testcase provided in this repository.
+## DynamoRIO
+
+Code coverage data can be collected via DynamoRIO's [drcov](http://dynamorio.org/docs/page_drcov.html) code coverage module. 
+
+Example usage:
 
 ```
 ..\DynamoRIO-Windows-7.0.0-RC1\bin64\drrun.exe -t drcov -- boombox.exe
 ```
 
-This command will produce a `.log` file consisting of the coverage data upon termination of the target application.
+## Intel Pin
 
-## Other Coverage Sources
+Using a [custom pintool](coverage/pin) contributed by [Agustin Gianni](https://twitter.com/agustingianni), the Intel Pin DBI can also be used to collect coverage data.
 
-[drcov](http://dynamorio.org/docs/page_drcov.html) was selected as the initial coverage data source due to its availability, adoption, multi-platform (Win/Mac/Linux), and multi-architecture (x86/AMD64/ARM) support. 
+Example usage:
 
-Intel's [PIN](https://software.intel.com/en-us/articles/pin-a-dynamic-binary-instrumentation-tool) for example does not come with a default code coverage pintool. It appears that most implement their own solution and there is no clear format for Lighthouse to standardize on. In the future, Lighthouse may ship with its own pintool.
+```
+pin.exe -t CodeCoverage64.dll -- boombox.exe
+```
 
-While Lighthouse is considered a prototype, internally it is largely agnostic of its data source. Future work will hopefully allow one to drop a loader into the `parsers` folder without any need for code changes to Lighthouse. Right now, this is not the case.
+For convenience, binaries for the Windows pintool can be found on the [releases](https://github.com/gaasedelen/lighthouse/releases) page. macOS and Linux users need to compile the pintool themselves following the [instructions](coverage/pin#compilation) included with the pintool for their respective platforms.
 
-## Future Work
+## Frida (Experimental)
+
+Lighthouse offers limited support for Frida based code coverage via a custom [instrumentation script](coverage/frida) contributed by [yrp](https://twitter.com/yrp604). 
+
+Example usage:
+
+```
+sudo python frida-drcov.py bb-bench
+```
+
+# Future Work
 
 Time and motivation permitting, future work may include:
 
-* Asynchronous composition, painting, metadata collection
+* ~~Asynchronous composition, painting, metadata collection~~
 * ~~Multifile/coverage support~~
 * Profiling based heatmaps/painting
-* Coverage & Profiling Treemaps
-* Automatic parser pickup
-* Parsers for additional coverage sources, eg PIN
-* Improved Pseudocode painting
+* Coverage & profiling treemaps
+* ~~Additional coverage sources, trace formats, etc~~
+* Improved pseudocode painting
+* Lighthouse console access, headless usage
+* Custom themes
+* Python 3 support
 
-## Authors
+I welcome external contributions, issues, and feature requests.
+
+# Authors
 
 * Markus Gaasedelen ([@gaasedelen](https://twitter.com/gaasedelen))
